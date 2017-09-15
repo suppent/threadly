@@ -429,6 +429,8 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
           } else {
             return scheduledTask;
           }
+        } else {
+          return executeQueue.peek();
         }
       }
       
