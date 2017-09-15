@@ -419,7 +419,8 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
      */
     public TaskWrapper getNextTask(boolean canRemove, boolean checkScheduleQueue) {
       TaskWrapper scheduledTask;
-      if (! checkScheduleQueue || (scheduledTask = scheduleQueue.peekFirst()) == null) {
+      if (! checkScheduleQueue || (scheduledTask = scheduleQueue.peekFirst()) == null || 
+          scheduledTask.getPureRunTime() > Clock.lastKnownForwardProgressingMillis()) {  // TODO - clock not updating?
         if (canRemove) {
           OneTimeTaskWrapper result = executeQueue.poll();
           if (result != null) {
@@ -519,7 +520,8 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
       TaskWrapper nextHighPriorityTask = 
           highPriorityQueueSet.getNextTask(canRemove && 
                                              (nextLowPriorityTask == null || 
-                                               Clock.lastKnownForwardProgressingMillis() + maxWaitForLowPriorityInMs < nextLowPriorityTask.getPureRunTime()), 
+                                               // TODO - clock not updating?
+                                               Clock.lastKnownForwardProgressingMillis() < nextLowPriorityTask.getPureRunTime()),   
                                            checkScheduleQueue);
       if (nextLowPriorityTask == null) {
         nextTask = nextHighPriorityTask;
@@ -758,8 +760,7 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
     
     @Override
     public short getExecuteReference() {
-      // we ignore the reference since one time tasks are deterministically removed from the queue
-      return 0;
+      return (short)(removedFromQueue ? 1 : 0);
     }
     
     public void removedFromQueue() {
@@ -768,13 +769,13 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
     }
 
     @Override
-    public boolean canExecute(short ignoredExecuteReference) {
+    public boolean canExecute(short executeReference) {
       if (! executed && 
           (executed = true) & // set executed as soon as possible, before removal attempt
           taskQueue.remove(this)) { // every task is wrapped in a unique wrapper, so we can remove 'this' safely
         return true;
       } else {
-        return removedFromQueue;
+        return removedFromQueue & executeReference == 1;
       }
     }
   }
