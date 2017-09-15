@@ -152,7 +152,12 @@ public class PrioritySchedulerQueueSetTest {
   
   @Test
   public void getNextTaskEmptyTest() {
-    assertNull(queueSet.getNextTask());
+    assertNull(queueSet.getNextTask(true));
+  }
+
+  @Test
+  public void getNextExecuteTaskEmptyTest() {
+    assertNull(queueSet.getNextTask(false));
   }
   
   @Test
@@ -161,7 +166,16 @@ public class PrioritySchedulerQueueSetTest {
                                                      Clock.accurateForwardProgressingMillis() + DELAY_TIME);
     queueSet.executeQueue.add(task);
     
-    assertTrue(queueSet.getNextTask() == task);
+    assertTrue(queueSet.getNextTask(true) == task);
+  }
+  
+  @Test
+  public void getNextExecuteTaskExecuteOnlyTest() {
+    OneTimeTaskWrapper task = new OneTimeTaskWrapper(DoNothingRunnable.instance(), null, 
+                                                     Clock.accurateForwardProgressingMillis() + DELAY_TIME);
+    queueSet.executeQueue.add(task);
+    
+    assertTrue(queueSet.getNextTask(false) == task);
   }
   
   @Test
@@ -170,7 +184,16 @@ public class PrioritySchedulerQueueSetTest {
                                                      Clock.accurateForwardProgressingMillis() + DELAY_TIME);
     queueSet.scheduleQueue.add(task);
     
-    assertTrue(queueSet.getNextTask() == task);
+    assertTrue(queueSet.getNextTask(true) == task);
+  }
+  
+  @Test
+  public void getNextExecuteTaskScheduleOnlyTest() {
+    OneTimeTaskWrapper task = new OneTimeTaskWrapper(DoNothingRunnable.instance(), null, 
+                                                     Clock.accurateForwardProgressingMillis() + DELAY_TIME);
+    queueSet.scheduleQueue.add(task);
+    
+    assertNull(queueSet.getNextTask(false));
   }
   
   @Test
@@ -182,7 +205,7 @@ public class PrioritySchedulerQueueSetTest {
     queueSet.executeQueue.add(executeTask);
     queueSet.scheduleQueue.add(scheduleTask);
     
-    assertTrue(queueSet.getNextTask() == executeTask);
+    assertTrue(queueSet.getNextTask(true) == executeTask);
   }
   
   @Test
@@ -194,7 +217,7 @@ public class PrioritySchedulerQueueSetTest {
     queueSet.executeQueue.add(executeTask);
     queueSet.scheduleQueue.add(scheduleTask);
     
-    assertTrue(queueSet.getNextTask() == scheduleTask);
+    assertTrue(queueSet.getNextTask(true) == scheduleTask);
   }
   
   private static class TestQueueSetListener implements QueueSetListener {

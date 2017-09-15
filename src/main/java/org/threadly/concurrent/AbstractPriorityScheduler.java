@@ -410,9 +410,14 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
      * The task returned from this may not be ready to executed, but at the time of calling it 
      * will be the next one to execute.
      * 
+     * @param checkScheduleQueue {@code true} to check both the execute and scheduled queue
      * @return TaskWrapper which will be executed next, or {@code null} if there are no tasks
      */
-    public TaskWrapper getNextTask() {
+    public TaskWrapper getNextTask(boolean checkScheduleQueue) {
+      if (! checkScheduleQueue) {
+        return executeQueue.peek();
+      }
+      
       TaskWrapper scheduledTask = scheduleQueue.peekFirst();
       TaskWrapper executeTask = executeQueue.peek();
       if (executeTask != null) {
@@ -490,14 +495,15 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
      * just queued.  If a queue update comes in, this must be re-invoked to see what task is now 
      * next.  If there are no tasks ready to be executed this will simply return {@code null}.
      * 
+     * @param checkScheduleQueue {@code true} to check both the execute and scheduled queue
      * @return Task to be executed next, or {@code null} if no tasks at all are queued
      */
-    public TaskWrapper getNextTask() {
+    public TaskWrapper getNextTask(boolean checkScheduleQueue) {
       // First compare between high and low priority task queues
       // then depending on that state, we may check starvable
       TaskWrapper nextTask;
-      TaskWrapper nextHighPriorityTask = highPriorityQueueSet.getNextTask();
-      TaskWrapper nextLowPriorityTask = lowPriorityQueueSet.getNextTask();
+      TaskWrapper nextHighPriorityTask = highPriorityQueueSet.getNextTask(checkScheduleQueue);
+      TaskWrapper nextLowPriorityTask = lowPriorityQueueSet.getNextTask(checkScheduleQueue);
       if (nextLowPriorityTask == null) {
         nextTask = nextHighPriorityTask;
       } else if (nextHighPriorityTask == null) {
@@ -527,12 +533,12 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
       }
       
       if (nextTask == null) {
-        return starvablePriorityQueueSet.getNextTask();
+        return starvablePriorityQueueSet.getNextTask(checkScheduleQueue);
       } else {
         // TODO - does it make sense to reduce the logic in the below conditionals
         long nextTaskDelay = nextTask.getScheduleDelay();
         if (nextTaskDelay > 0) {
-          TaskWrapper nextStarvableTask = starvablePriorityQueueSet.getNextTask();
+          TaskWrapper nextStarvableTask = starvablePriorityQueueSet.getNextTask(checkScheduleQueue);
           if (nextStarvableTask != null && nextTaskDelay > nextStarvableTask.getScheduleDelay()) {
             return nextStarvableTask;
           } else {

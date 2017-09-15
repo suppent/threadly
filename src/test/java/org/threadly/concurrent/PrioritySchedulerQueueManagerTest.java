@@ -89,7 +89,7 @@ public class PrioritySchedulerQueueManagerTest {
     
     queueSet.addExecute(task);
     
-    assertTrue(task == queueManager.getNextTask());
+    assertTrue(task == queueManager.getNextTask(true));
   }
   
   @Test
@@ -108,7 +108,7 @@ public class PrioritySchedulerQueueManagerTest {
     
     queueSet.addScheduled(task);
     
-    assertTrue(task == queueManager.getNextTask());
+    assertTrue(task == queueManager.getNextTask(true));
   }
   
   @Test
@@ -123,11 +123,11 @@ public class PrioritySchedulerQueueManagerTest {
                                                       Clock.lastKnownForwardProgressingMillis());
     queueManager.highPriorityQueueSet.addScheduled(scheduleTask);
 
-    assertTrue(executeTask == queueManager.getNextTask());
-    assertTrue(executeTask == queueManager.getNextTask());  // execute task has not been removed yet
+    assertTrue(executeTask == queueManager.getNextTask(true));
+    assertTrue(executeTask == queueManager.getNextTask(true));  // execute task has not been removed yet
     // this should remove the execute task so we can get the scheduled task
     assertTrue(executeTask.canExecute(executeTask.getExecuteReference()));
-    assertTrue(scheduleTask == queueManager.getNextTask());
+    assertTrue(scheduleTask == queueManager.getNextTask(true));
   }
   
   @Test
@@ -142,11 +142,11 @@ public class PrioritySchedulerQueueManagerTest {
                                                             Clock.lastKnownForwardProgressingMillis());
     queueManager.highPriorityQueueSet.addExecute(executeTask);
 
-    assertTrue(scheduleTask == queueManager.getNextTask());
-    assertTrue(scheduleTask == queueManager.getNextTask());  // schedule task has not been removed yet
+    assertTrue(scheduleTask == queueManager.getNextTask(true));
+    assertTrue(scheduleTask == queueManager.getNextTask(true));  // schedule task has not been removed yet
  // this should remove the schedule task so we can get the execute task
     assertTrue(scheduleTask.canExecute(executeTask.getExecuteReference()));
-    assertTrue(executeTask == queueManager.getNextTask());
+    assertTrue(executeTask == queueManager.getNextTask(true));
   }
   
   @Test
@@ -161,7 +161,7 @@ public class PrioritySchedulerQueueManagerTest {
                                                             Clock.lastKnownForwardProgressingMillis());
     queueManager.lowPriorityQueueSet.addExecute(executeTask);
 
-    assertTrue(executeTask == queueManager.getNextTask());
+    assertTrue(executeTask == queueManager.getNextTask(true));
   }
   
   @Test
@@ -175,7 +175,7 @@ public class PrioritySchedulerQueueManagerTest {
     queueManager.highPriorityQueueSet.addScheduled(highTask);
     queueManager.lowPriorityQueueSet.addScheduled(lowTask);
 
-    assertTrue(highTask == queueManager.getNextTask());
+    assertTrue(highTask == queueManager.getNextTask(true));
   }
   
   @Test
@@ -189,12 +189,13 @@ public class PrioritySchedulerQueueManagerTest {
     queueManager.highPriorityQueueSet.addScheduled(highTask);
     queueManager.lowPriorityQueueSet.addScheduled(lowTask);
 
-    assertTrue(lowTask == queueManager.getNextTask());
+    assertTrue(lowTask == queueManager.getNextTask(true));
   }
   
   @Test
   public void getAndSetLowPriorityWaitTest() {
-    assertEquals(AbstractPriorityScheduler.DEFAULT_LOW_PRIORITY_MAX_WAIT_IN_MS, queueManager.getMaxWaitForLowPriority());
+    assertEquals(AbstractPriorityScheduler.DEFAULT_LOW_PRIORITY_MAX_WAIT_IN_MS, 
+                 queueManager.getMaxWaitForLowPriority());
     
     long lowPriorityWait = Long.MAX_VALUE;
     queueManager.setMaxWaitForLowPriority(lowPriorityWait);
@@ -211,6 +212,7 @@ public class PrioritySchedulerQueueManagerTest {
       // expected
     }
     
-    assertEquals(AbstractPriorityScheduler.DEFAULT_LOW_PRIORITY_MAX_WAIT_IN_MS, queueManager.getMaxWaitForLowPriority());
+    assertEquals(AbstractPriorityScheduler.DEFAULT_LOW_PRIORITY_MAX_WAIT_IN_MS, 
+                 queueManager.getMaxWaitForLowPriority());
   }
 }
