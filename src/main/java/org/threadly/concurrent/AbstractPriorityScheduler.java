@@ -418,17 +418,17 @@ public abstract class AbstractPriorityScheduler extends AbstractSubmitterSchedul
      * @return TaskWrapper which will be executed next, or {@code null} if there are no tasks
      */
     public TaskWrapper getNextTask(boolean canRemove, boolean checkScheduleQueue) {
-      TaskWrapper scheduledTask;
+      TaskWrapper scheduledTask = null;
       if (! checkScheduleQueue || (scheduledTask = scheduleQueue.peekFirst()) == null || 
           scheduledTask.getPureRunTime() > Clock.lastKnownForwardProgressingMillis()) {  // TODO - clock not updating?
         if (canRemove) {
           OneTimeTaskWrapper result = executeQueue.poll();
           if (result != null) {
             result.removedFromQueue();
+            return result;
+          } else {
+            return scheduledTask;
           }
-          return result;
-        } else {
-          return executeQueue.peek();
         }
       }
       
